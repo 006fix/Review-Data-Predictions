@@ -1,4 +1,4 @@
-# Review-Data-Predictions
+# IMDB review year predictor
 Collaborative project to buld ML skills and try out approaches via determining review year of IMBD reviews
 
 The discussion ...
