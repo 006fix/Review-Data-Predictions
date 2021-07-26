@@ -13,8 +13,8 @@ import zlib # used for a simple hash
 # Define data source and target
 data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/raw")
 # Enumerate the failenames rather than reading the directory, so outcome is fully predictable
-# files_to_load = ["part-01.json", "part-02.json", "part-03.json", "part-04.json", "part-05.json", "part-06.json"]
-files_to_load = ["sample.json"]
+files_to_load = ["part-01.json", "part-02.json", "part-03.json", "part-04.json", "part-05.json", "part-06.json"]
+# files_to_load = ["sample.json"]
 
 data_target_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/pre_processed")
 data_target_filename_prefix = "pre_processed_group_"
