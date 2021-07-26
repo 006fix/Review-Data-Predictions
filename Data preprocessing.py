@@ -11,8 +11,9 @@ import zlib # used for a simple hash
 # Define data source and target
 data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/raw")
 # Enumerate the failenames rather than reading the directory, so outcome is fully predictable
-# files_to_load = ["part-01.json", "part-02.json", "part-03.json", "part-04.json", "part-05.json", "part-06.json"]
-files_to_load = ["sample.json"]
+files_to_load = ["part-01.json", "part-02.json", "part-03.json", "part-04.json", "part-05.json", "part-06.json"]
+# Use the below instead of the above for testing
+# files_to_load = ["sample.json"]
 
 data_target_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/pre_processed")
 data_target_filename_prefix = "pre_processed_group_"
@@ -36,8 +37,8 @@ title_pattern_regex = re.compile(r"(.*)(\s\(\d{4}.*\))")
 # 1) For simplicity later on, add a column with the target review year
 # 2) Replaces any instances of any year from the summary and detail with QQQQ
 # 3) Replaces instances of the title (case insensitive) with TTTT
-# 3) Split the data into 10 target files, based on last digit in a hash of the movie name (so all reviews for one movie end in the same file)
-# 4) Write out as a set of lines, each of which is a JSON object (rather than a JSON list) .. so allows easy line by line use later
+# 4) Split the data into 10 target files, based on last digit in a hash of the movie name (so all reviews for one movie end in the same file)
+# 5) Write out as a set of lines, each of which is a JSON object (rather than a JSON list) .. so allows easy line by line use later
 
 # Open the set of output files, in append mode
 for x in range(10):
@@ -74,13 +75,15 @@ for current_file in files_to_load:
             review['movie_hidden_years'] = year_pattern_regex.sub('QQQQ',review['movie'])
 
             # Replace any occurances of the movie title with TTTT
-            title_search = title_pattern_regex.match(review['movie']).group(1)
-            # Use a regex sub function to ensure case insensitivity
-            # Effctively like below but case insensitive
-            # review['review_summary'] = review['review_summary'].replace(title_search, "TTTT")
-            specific_title_regex = re.compile(re.escape(title_search), re.IGNORECASE)
-            review['review_summary'] = specific_title_regex.sub('TTTT',review['review_summary'])
-            review['review_detail'] = specific_title_regex.sub('TTTT',review['review_detail'])
+            title_search_group = title_pattern_regex.match(review['movie'])
+            if (title_search_group):
+                title_search = title_pattern_regex.match(review['movie']).group(1)
+                # Use a regex sub function to ensure case insensitivity
+                # Effctively like below but case insensitive
+                # review['review_summary'] = review['review_summary'].replace(title_search, "TTTT")
+                specific_title_regex = re.compile(re.escape(title_search), re.IGNORECASE)
+                review['review_summary'] = specific_title_regex.sub('TTTT',review['review_summary'])
+                review['review_detail'] = specific_title_regex.sub('TTTT',review['review_detail'])
 
             # Write to correct sub-group
             target_files[sub_group].write(json.dumps(review))
@@ -90,7 +93,7 @@ for current_file in files_to_load:
             process_count += 1
             update_count -= 1
             if (update_count == 0):
-                print(f"Finished pre-processing {process_count} rows")
+                print(f"Finished pre-processing {process_count} rows", end='\r')
                 update_count = 10000
 
     print(f"Finished pre-processing of {current_file} at {time.time() - startTime:.2f} total seconds elapsed")
