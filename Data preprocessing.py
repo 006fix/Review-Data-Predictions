@@ -22,6 +22,14 @@ reviews_json = list()
 year_pattern_regex = re.compile(r"\s(19|20)\d{2}")
 # 
 
+# Notes on changes made
+# 1) For simplicity later on, add a column with the target review year
+# 2) Remove any instances of any year from the decription.  May be making this harder than it needs to be, but really tests the word reiews
+#
+# NOT included (for ref.)
+# 1) Removal of instances of the film name.  Could be an issue if names are in reviews in both build and test set, though we could split
+# the set by film (using last digit of a hash of name for example)
+
 startTime = time.time()
 for current_file in files_to_load:
     print(f"Starting load of {current_file}...")
