@@ -34,13 +34,10 @@ title_pattern_regex = re.compile(r"(.*)(\s\(\d{4}.*\))")
 
 # Notes on preprocessing
 # 1) For simplicity later on, add a column with the target review year
-# 2) Remove any instances of any year from the description.  May be making this harder than it needs to be, but really tests the word based reviews
-# 3) Split the data into 10 target files, based on last digit in a hash of the movie name (so all reviews for one movi end in eth same file)
+# 2) Replaces any instances of any year from the summary and detail with QQQQ
+# 3) Replaces instances of the title (case insensitive) with TTTT
+# 3) Split the data into 10 target files, based on last digit in a hash of the movie name (so all reviews for one movie end in the same file)
 # 4) Write out as a set of lines, each of which is a JSON object (rather than a JSON list) .. so allows easy line by line use later
-#
-# NOT included (for ref.)
-# 1) Removal of instances of the film name.  Could be an issue if names are in reviews in both build and test set, though we could split
-# the set by film (using last digit of a hash of name for example)
 
 # Open the set of output files, in append mode
 for x in range(10):
