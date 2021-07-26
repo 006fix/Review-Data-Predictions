@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import time
 import re
+import zlib # used for a simple hash
 
 # Define data source and target
 data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/raw")
@@ -28,7 +29,7 @@ year_pattern_regex = re.compile(r"(19|20)\d{2}")
 # Notes on preprocessing
 # 1) For simplicity later on, add a column with the target review year
 # 2) Remove any instances of any year from the description.  May be making this harder than it needs to be, but really tests the word based reviews
-# 3) Split the data into 10 target files, based on last digit in the review_id
+# 3) Split the data into 10 target files, based on last digit in a hash of the movie name (so all reviews for one movi end in eth same file)
 # 4) Write out as a set of lines, each of which is a JSON object (rather than a JSON list) .. so allows easy line by line use later
 #
 # NOT included (for ref.)
@@ -57,6 +58,10 @@ for current_file in files_to_load:
         
         for review in new_reviews:
 
+            # Use a hash of 'movie' to determine the right sub group.  This puts all reviws for a given movie in one file
+            target_index_hash = str(zlib.adler32(bytearray(review['movie'], 'utf-8')))
+            sub_group = int(target_index_hash[-1:])
+            
             # Add a column with the year
             review['review_year'] = review['review_date'][-4:]
 
@@ -65,8 +70,7 @@ for current_file in files_to_load:
             review['review_detail'] = year_pattern_regex.sub('QQQQ',review['review_detail'])
             review['movie'] = year_pattern_regex.sub('QQQQ',review['movie'])
 
-            # Write to correct sub-group based on last digit of review_id
-            sub_group = int(review['review_id'][-1:])
+            # Write to correct sub-group
             target_files[sub_group].write(json.dumps(review))
             target_files[sub_group].write('\n')
 
