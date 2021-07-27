@@ -17,8 +17,10 @@ import time
 from keras.preprocessing.text import Tokenizer
 
 # Define data source and target
-pre_processed_data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/pre_processed")
-files_to_load = ["pre_processed_group_0.txt", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
+data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
+files_to_load = ["BOW_training_data.txt"]
+# Below is useful if reading the original files
+# files_to_load = ["BOW_training_data.json", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
 # Use the below instead of the above for testing			 
 # files_to_load = ["pre_processed_group_0.txt"]
 
@@ -37,7 +39,7 @@ process_count = 0
 
 for current_file in files_to_load:
     print(f"Starting load of {current_file}...")
-    file_to_read = pre_processed_data_source_folder / current_file
+    file_to_read = data_source_folder / current_file
     with open(file_to_read, mode='r') as file:
         
         process_count_file = 0
