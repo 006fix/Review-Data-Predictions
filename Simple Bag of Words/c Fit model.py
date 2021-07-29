@@ -8,15 +8,17 @@
 import json
 from pathlib import Path
 import time
-from keras.preprocessing.text import Tokenizer, tokenizer_from_json
-from keras.models import Sequential
-from keras.layers import Dense
+from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
+from tensorflow.keras.utils import to_categorical
+from numpy import array
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 # Define data source and target
-pre_processed_data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/pre_processed")
-# files_to_process = ["pre_processed_group_0.txt", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
-# Use the below instead of the above for testing			 
-files_to_process = ["pre_processed_group_0.txt"]
+data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
+files_to_load = ["BOW_training_data.txt"]
+
+startTime = time.time()
 
 # Load dictonary source
 tokenized_dictionary = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/tokenized_dictionary.json")
@@ -24,3 +26,58 @@ with open(tokenized_dictionary) as f:
     tokenizer = tokenizer_from_json(f.read())
 print(f"Loaded tokenized dictionary based on {tokenizer.document_count} reviews, and icluding {len(tokenizer.word_index)} words")
 
+# Load the training data
+training_texts = []
+training_outcomes = []
+process_count = 0
+for current_file in files_to_load:
+    print(f"Starting load of training data by {current_file}...")
+    file_to_read = data_source_folder / current_file
+    with open(file_to_read, mode='r') as file:        
+        for line in file:
+            review = json.loads(line.strip())
+            # Use both the review summary and the review detail
+            training_texts.append (review['review_summary'] + review['review_detail'])
+            # Training outcomes are zero based by subtracting 1998
+            training_outcomes.append (int(review['review_year'])-1998)
+            process_count += 1
+
+print(f"{process_count} items of training data loaded after {time.time() - startTime:.2f} seconds")
+
+# Set the desired dictionary size
+# Start with 3000 words
+max_words = 3000
+tokenizer.num_words = max_words
+
+# Build the tokenized training texts
+print(f"Tokenizing training texts, using dictionary of {max_words}")
+# Uses TFDIF mode as a guess for what will work best
+Xtrain = tokenizer.texts_to_matrix(training_texts, mode='tfidf')
+print(f"Tokenizing traning texts complete after {time.time() - startTime:.2f} seconds")
+print(f"Training texts shape is {Xtrain.shape}")
+
+# Buld the target matrix
+# Target is an ordinal variable -
+# But, for initial version treat as a classification
+# Uses the Keras to_categorical model
+# TODO Use modified model e.g. sequential ones, not just 'hot one'
+training_outcomes = array(training_outcomes)
+Ytrain = to_categorical(training_outcomes)
+print(f"Training outcomes shape is {Ytrain.shape}")
+
+# create model
+# Total guess, but use two hidden layers, with first of 600 (1/5 of the inputs) and second 50 (approx 2x the output)
+print(f"{time.time() - startTime:.2f} : Creating model")
+model = Sequential()
+model.add(Dense(600, input_dim=max_words, activation='relu'))
+model.add(Dense(50, input_dim=4, activation='relu'))
+# 24 ouput options
+model.add(Dense(24, activation='softmax'))
+
+# Compile model
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+print(f"{time.time() - startTime:.2f} : Model compiled")
+
+# fit model
+model.fit(Xtrain, Ytrain, epochs=50, verbose=2)
+print(f"{time.time() - startTime:.2f} : Model fitted")
