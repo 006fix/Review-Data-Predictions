@@ -26,6 +26,9 @@ with open(tokenized_dictionary) as f:
     tokenizer = tokenizer_from_json(f.read())
 print(f"Loaded tokenized dictionary based on {tokenizer.document_count} reviews, and icluding {len(tokenizer.word_index)} words")
 
+# Define the target
+model_save_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/saved_model.tf")
+
 # Load the training data
 training_texts = []
 training_outcomes = []
@@ -45,8 +48,8 @@ for current_file in files_to_load:
 print(f"{process_count} items of training data loaded after {time.time() - startTime:.2f} seconds")
 
 # Set the desired dictionary size
-# Start with 3000 words
-max_words = 3000
+# Start with 500 words (3000 gave what looked like severe overfitting)
+max_words = 500
 tokenizer.num_words = max_words
 
 # Build the tokenized training texts
@@ -66,10 +69,10 @@ Ytrain = to_categorical(training_outcomes)
 print(f"Training outcomes shape is {Ytrain.shape}")
 
 # create model
-# Total guess, but use two hidden layers, with first of 600 (1/5 of the inputs) and second 50 (approx 2x the output)
+# Total guess, but use two hidden layers, with first of 200 (2/5 of the inputs) and second 50 (approx 2x the output)
 print(f"{time.time() - startTime:.2f} : Creating model")
 model = Sequential()
-model.add(Dense(600, input_dim=max_words, activation='relu'))
+model.add(Dense(200, input_dim=max_words, activation='relu'))
 model.add(Dense(50, input_dim=4, activation='relu'))
 # 24 ouput options
 model.add(Dense(24, activation='softmax'))
@@ -78,6 +81,11 @@ model.add(Dense(24, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
+
 # fit model
-model.fit(Xtrain, Ytrain, epochs=50, verbose=2)
+model.fit(Xtrain, Ytrain, epochs=25, verbose=2)
 print(f"{time.time() - startTime:.2f} : Model fitted")
+
+# Save the model
+model.save(model_save_file)
+print(f"{time.time() - startTime:.2f} : Model Saved")
