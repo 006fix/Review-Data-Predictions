@@ -13,6 +13,7 @@ from tensorflow.keras.utils import to_categorical
 from numpy import array
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+import matplotlib.pyplot as plt
 
 # Define data source and target
 data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
@@ -24,7 +25,7 @@ startTime = time.time()
 tokenized_dictionary = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/tokenized_dictionary.json")
 with open(tokenized_dictionary) as f:
     tokenizer = tokenizer_from_json(f.read())
-print(f"Loaded tokenized dictionary based on {tokenizer.document_count} reviews, and icluding {len(tokenizer.word_index)} words")
+print(f"Loaded tokenized dictionary based on {tokenizer.document_count} reviews, and including {len(tokenizer.word_index)} words")
 
 # Define the target
 model_save_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/saved_model.tf")
@@ -48,14 +49,14 @@ for current_file in files_to_load:
 print(f"{process_count} items of training data loaded after {time.time() - startTime:.2f} seconds")
 
 # Set the desired dictionary size
-# Start with 500 words (3000 gave what looked like severe overfitting)
 max_words = 500
 tokenizer.num_words = max_words
 
 # Build the tokenized training texts
 print(f"Tokenizing training texts, using dictionary of {max_words}")
 # Uses TFDIF mode as a guess for what will work best
-Xtrain = tokenizer.texts_to_matrix(training_texts, mode='tfidf')
+# Change to 'freq' from 'DFIDF'
+Xtrain = tokenizer.texts_to_matrix(training_texts, mode='freq')
 print(f"Tokenizing traning texts complete after {time.time() - startTime:.2f} seconds")
 print(f"Training texts shape is {Xtrain.shape}")
 
@@ -69,11 +70,10 @@ Ytrain = to_categorical(training_outcomes)
 print(f"Training outcomes shape is {Ytrain.shape}")
 
 # create model
-# Total guess, but use two hidden layers, with first of 200 (2/5 of the inputs) and second 50 (approx 2x the output)
 print(f"{time.time() - startTime:.2f} : Creating model")
 model = Sequential()
-model.add(Dense(200, input_dim=max_words, activation='relu'))
-model.add(Dense(50, input_dim=4, activation='relu'))
+model.add(Dense(300, input_dim=max_words, activation='relu'))
+model.add(Dense(50, activation='relu'))
 # 24 ouput options
 model.add(Dense(24, activation='softmax'))
 
@@ -81,10 +81,17 @@ model.add(Dense(24, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
-
-# fit model
-model.fit(Xtrain, Ytrain, epochs=25, verbose=2)
+# fit model.  Include a 0.2 validation split
+history = model.fit(Xtrain, Ytrain, validation_split=0.2, epochs=100, verbose=2)
 print(f"{time.time() - startTime:.2f} : Model fitted")
+
+plt.plot (history.history['accuracy'])
+plt.plot (history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train','test'], loc='upper left')
+plt.show()
 
 # Save the model
 model.save(model_save_file)
