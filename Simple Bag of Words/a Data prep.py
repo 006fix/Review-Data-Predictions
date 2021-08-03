@@ -29,16 +29,14 @@ target_volume = 30000
 target_volume_per_bin = int(target_volume / len(bins))
 print(f"For a target of {target_volume}, take {target_volume_per_bin} from each of the {len(bins)} bins")
 
+# Create the counters
 bin_count = {}
+year_counter = {}
 for i in range(len(bins)):
     bin_count[i] = int(target_volume_per_bin / len(bins[i]))
+    for year in bins[i]:
+        year_counter[year] = bin_count[i]
     print(f"Taking {bin_count[i]} from each of the {len(bins[i])} years in bin {i}")
-
-# Create the counters
-target_volume_per_year = 1000
-year_counter = {}
-for year in range (1998,2022): # Note that index must be one higher than the years required as thats how the for loop works
-    year_counter[str(year)] = target_volume_per_year
 
 # Define a corpus sub-set
 corpus_sub_set = []
@@ -56,16 +54,16 @@ for current_file in files_to_load:
         for line in file:
 
             review = json.loads(line.strip())
-            if (year_counter[review['review_year']] > 0 ):
-                corpus_sub_set.append(review)
-                year_counter[review['review_year']] = year_counter[review['review_year']] -1
-                
-                if (year_counter[review['review_year']] == 0):
-                    print(f"Found target number for {review['review_year']}")
+            for bin_id, bin in bins.items():
+                if ((review['review_year'] in bin) and (year_counter[review['review_year']] > 0)):
+                    review['bin_id'] = bin_id
+                    corpus_sub_set.append(review)
+                    year_counter[review['review_year']] = year_counter[review['review_year']] -1
+                    if (year_counter[review['review_year']] == 0):
+                        print(f"Found target number for {review['review_year']}")
+                    target_count += 1
 
-                target_count += 1
-
-            if (target_count >= target_volume_per_year * 24 ):
+            if (target_count >= target_volume ):
                 break # Stop when enough data found
 
 print(f"Data prep selection complete after {time.time() - startTime:.2f} seconds. {target_count} reviews selected")
