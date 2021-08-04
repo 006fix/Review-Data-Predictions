@@ -12,7 +12,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
 from tensorflow.keras.utils import to_categorical
 from numpy import array
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, BatchNormalization
 import matplotlib.pyplot as plt
 
 # Define data source and target
@@ -34,7 +34,7 @@ model_save_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simp
 training_texts = []
 training_outcomes = []
 process_count = 0
-non_number_count = 0
+# non_number_count = 0
 for current_file in files_to_load:
     print(f"Starting load of training data by {current_file}...")
     file_to_read = data_source_folder / current_file
@@ -45,35 +45,38 @@ for current_file in files_to_load:
             # Temporarily switch to using the rating (in bins of positive,neutral, negative) rather than year, since year not proving easy
             # Training outcomes are zero based by subtracting 1998
             # training_outcomes.append (int(review['review_year'])-1998)
-            # All shoul be psitive intigers, but at least one doesn't seem to be - find and exclude
-            if (review['rating'] == None):
-                non_number_count += 1
-                continue
-            elif (int(review['rating'])>6):
-                training_outcomes.append (2)
-            elif (int(review['rating'])<4):
-                training_outcomes.append (0)
-            else:
-                training_outcomes.append (1)
+            # if (review['rating'] == None):
+            #     non_number_count += 1
+            #     continue
+            # elif (int(review['rating'])>6):
+            #     training_outcomes.append (2)
+            # elif (int(review['rating'])<4):
+            #     training_outcomes.append (0)
+            # else:
+            #     training_outcomes.append (1)
 
-            # Load the traing texts
-            training_texts.append (review['review_summary'] + review['review_detail'])
+            # Load the training texts
+            training_texts.append (review['review_detail'])
+
+            # Load the outcomes
+            training_outcomes.append (review['bin_id'])
 
             process_count += 1
 
 print(f"{process_count} items of training data loaded after {time.time() - startTime:.2f} seconds")
-print(f"Found {non_number_count} ratings that have a non string rating")
+# print(f"Found {non_number_count} ratings that have a non string rating")
 
 # Set the desired dictionary size
-max_words = 500
+max_words = 1500
 tokenizer.num_words = max_words
 
 # Build the tokenized training texts
 print(f"Tokenizing training texts, using dictionary of {max_words}")
 # Uses TFDIF mode as a guess for what will work best
 Xtrain = tokenizer.texts_to_matrix(training_texts, mode='freq')
-print(f"Tokenizing traning texts complete after {time.time() - startTime:.2f} seconds")
+print(f"Tokenizing training texts complete after {time.time() - startTime:.2f} seconds")
 print(f"Training texts shape is {Xtrain.shape}")
+print(f"Training texts example is {Xtrain[0]}")
 
 # Buld the target matrix
 # Target is an ordinal variable -
@@ -87,7 +90,8 @@ print(f"Training outcomes shape is {Ytrain.shape}")
 # create model
 print(f"{time.time() - startTime:.2f} : Creating model")
 model = Sequential()
-model.add(Dense(100, input_dim=max_words, activation='relu'))
+model.add(BatchNormalization(input_dim=max_words))
+model.add(Dense(100, activation='tanh'))
 # model.add(Dense(50, activation='relu'))
 # 24 ouput options (now 3 during check vs. rating )
 model.add(Dense(3, activation='softmax'))
@@ -97,7 +101,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
 # fit model.  Include a 0.2 validation split
-history = model.fit(Xtrain, Ytrain, validation_split=0.2, epochs=30, verbose=2)
+history = model.fit(Xtrain, Ytrain, validation_split=0.2, epochs=35, verbose=2)
 print(f"{time.time() - startTime:.2f} : Model fitted")
 
 plt.plot (history.history['accuracy'])
