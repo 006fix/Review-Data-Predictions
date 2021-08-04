@@ -29,8 +29,9 @@ data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/sim
 # create the tokenizer
 # Most parameters are default, aside from the oov-token which is set to a specific entry so that rare words are visible
 # List usage constrained to 10k words for now.  set below to 0 to use entire word list
-max_words = 10000
-t = Tokenizer(num_words=max_words, filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', lower=True, split=' ', char_level=False, oov_token='oov_token')
+# Seperates by capitalisation as that may align bette to word usage / position, and doesn't add much
+# max_words = 10000
+t = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', lower=False, split=' ', char_level=False, oov_token='oov_token')
 
 # Read in the text corpus
 # This is now a list of JSONs, so needs to be read in accordingly

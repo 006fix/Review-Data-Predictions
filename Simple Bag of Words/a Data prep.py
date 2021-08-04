@@ -25,7 +25,7 @@ bins[1] = {'2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012
 bins[2] = {'2015', '2016', '2017', '2018', '2019', '2020'}
 
 # Determine the samples
-target_volume = 30000
+target_volume = 100000
 target_volume_per_bin = int(target_volume / len(bins))
 print(f"For a target of {target_volume}, take {target_volume_per_bin} from each of the {len(bins)} bins")
 
