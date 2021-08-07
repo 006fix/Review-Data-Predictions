@@ -10,66 +10,85 @@ import json
 from pathlib import Path
 import time
 
-# Define data source and target
+# Functio to do the prep.  Seperated as used for both train and test data
+def prep_data (files_to_load, data_target_file, target_volume):
+
+    print(f"\n\nCreating {data_target_file}\n")
+
+    # Create the bins
+    bins = {}
+    bins[0] = {'1999', '2000', '2001', '2002', '2003'}
+    bins[1] = {'2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014'}
+    bins[2] = {'2015', '2016', '2017', '2018', '2019', '2020'}
+
+    # Determine the sample sizes
+    target_volume_per_bin = int(target_volume / len(bins))
+    print(f"For a target of {target_volume}, take {target_volume_per_bin} from each of the {len(bins)} bins")
+    test_of_target_vol = int(target_volume_per_bin) * len(bins) # Ensures loop only breaks when it should
+
+    # Create the counters
+    bin_count = {}
+    year_counter = {}
+    for i in range(len(bins)):
+        bin_count[i] = int(target_volume_per_bin / len(bins[i]))
+        for year in bins[i]:
+            year_counter[year] = bin_count[i]
+        print(f"Taking {bin_count[i]} from each of the {len(bins[i])} years in bin {i}")
+
+    # Define a corpus sub-set
+    corpus_sub_set = []
+
+    # Read in the text corpus
+    # This is now a list of JSONs, so needs to be read in accordingly
+    target_count = 0
+
+    for current_file in files_to_load:
+        print(f"Starting processing of {current_file}...")
+        file_to_read = pre_processed_data_source_folder / current_file
+        with open(file_to_read, mode='r') as file:
+            
+            for line in file:
+
+                review = json.loads(line.strip())
+                for bin_id, bin in bins.items():
+                    if ((review['review_year'] in bin) and (year_counter[review['review_year']] > 0)):
+                        review['bin_id'] = bin_id
+                        corpus_sub_set.append(review)
+                        year_counter[review['review_year']] = year_counter[review['review_year']] -1
+                        if (year_counter[review['review_year']] == 0):
+                            print(f"Found target number for {review['review_year']}")
+                        target_count += 1
+
+                if (target_count >= test_of_target_vol ):
+                    break # Stop when enough data found
+
+        if (target_count >= test_of_target_vol ):
+            break # Stop when enough data found (outer loop)
+
+    print(f"Data prep selection complete after {time.time() - startTime:.2f} seconds. {target_count} reviews selected")
+
+    # Write the result as a set of lines each of which is a JSON (allows streamed reading if required)
+    with open(data_target_file, 'w', encoding='utf-8') as f:
+        for review in corpus_sub_set:
+            f.write(json.dumps(review))
+            f.write('\n')
+
+# Define general data source (true for train and test)
 pre_processed_data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/pre_processed")
-# files_to_load = ["pre_processed_group_0.txt", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
-# Use the below instead of the above for testing			 
-files_to_load = ["pre_processed_group_0.txt"]
 
-data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/BOW_training_data.txt")
-
-# Create the bins
-bins = {}
-bins[0] = {'1999', '2000', '2001', '2002', '2003'}
-bins[1] = {'2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014'}
-bins[2] = {'2015', '2016', '2017', '2018', '2019', '2020'}
-
-# Determine the samples
-target_volume = 100000
-target_volume_per_bin = int(target_volume / len(bins))
-print(f"For a target of {target_volume}, take {target_volume_per_bin} from each of the {len(bins)} bins")
-
-# Create the counters
-bin_count = {}
-year_counter = {}
-for i in range(len(bins)):
-    bin_count[i] = int(target_volume_per_bin / len(bins[i]))
-    for year in bins[i]:
-        year_counter[year] = bin_count[i]
-    print(f"Taking {bin_count[i]} from each of the {len(bins[i])} years in bin {i}")
-
-# Define a corpus sub-set
-corpus_sub_set = []
-
-# Read in the text corpus
-# This is now a list of JSONs, so needs to be read in accordingly
+# General global for start time
 startTime = time.time()
-target_count = 0
 
-for current_file in files_to_load:
-    print(f"Starting processing of {current_file}...")
-    file_to_read = pre_processed_data_source_folder / current_file
-    with open(file_to_read, mode='r') as file:
-        
-        for line in file:
+# Create training data
+files_to_load = ["pre_processed_group_0.txt", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
+# Use the below instead of the above for testing			 
+# files_to_load = ["pre_processed_group_0.txt"]
+data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/BOW_training_data.txt")
+training_volume = 100000
+prep_data (files_to_load, data_target_file, target_volume = training_volume )
 
-            review = json.loads(line.strip())
-            for bin_id, bin in bins.items():
-                if ((review['review_year'] in bin) and (year_counter[review['review_year']] > 0)):
-                    review['bin_id'] = bin_id
-                    corpus_sub_set.append(review)
-                    year_counter[review['review_year']] = year_counter[review['review_year']] -1
-                    if (year_counter[review['review_year']] == 0):
-                        print(f"Found target number for {review['review_year']}")
-                    target_count += 1
-
-            if (target_count >= target_volume ):
-                break # Stop when enough data found
-
-print(f"Data prep selection complete after {time.time() - startTime:.2f} seconds. {target_count} reviews selected")
-
-# Write the result as a set of lines each of which is a JSON (allows streamed reading if required)
-with open(data_target_file, 'w', encoding='utf-8') as f:
-    for review in corpus_sub_set:
-        f.write(json.dumps(review))
-        f.write('\n')
+# Create test data
+files_to_load = ["pre_processed_group_8.txt"]
+data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/BOW_test_data.txt")
+test_volume = 3000
+prep_data (files_to_load, data_target_file, target_volume = test_volume )
