@@ -24,15 +24,16 @@ def prep_data (files_to_load, data_target_file, target_volume):
     # Determine the sample sizes
     target_volume_per_bin = int(target_volume / len(bins))
     print(f"For a target of {target_volume}, take {target_volume_per_bin} from each of the {len(bins)} bins")
-    test_of_target_vol = int(target_volume_per_bin) * len(bins) # Ensures loop only breaks when it should
 
     # Create the counters
+    test_of_target_vol = 0 # Ensures loop only breaks when it should
     bin_count = {}
     year_counter = {}
     for i in range(len(bins)):
         bin_count[i] = int(target_volume_per_bin / len(bins[i]))
         for year in bins[i]:
             year_counter[year] = bin_count[i]
+            test_of_target_vol += bin_count[i]
         print(f"Taking {bin_count[i]} from each of the {len(bins[i])} years in bin {i}")
 
     # Define a corpus sub-set
@@ -65,7 +66,7 @@ def prep_data (files_to_load, data_target_file, target_volume):
         if (target_count >= test_of_target_vol ):
             break # Stop when enough data found (outer loop)
 
-    print(f"Data prep selection complete after {time.time() - startTime:.2f} seconds. {target_count} reviews selected")
+    print(f"Selection complete after {time.time() - startTime:.2f} seconds. {target_count} reviews selected")
 
     # Write the result as a set of lines each of which is a JSON (allows streamed reading if required)
     with open(data_target_file, 'w', encoding='utf-8') as f:
