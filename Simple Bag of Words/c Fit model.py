@@ -131,7 +131,7 @@ print(f"Test outcomes shape is {Ytest.shape}")
 print(f"{time.time() - startTime:.2f} : Creating model")
 model = Sequential()
 model.add(BatchNormalization(input_dim=max_words))
-model.add(Dense(100, activation='tanh'))
+model.add(Dense(100, activation='relu'))
 # model.add(Dense(50, activation='relu'))
 # 24 ouput options (now 3 during check vs. rating )
 model.add(Dense(3, activation='softmax'))
@@ -145,8 +145,8 @@ history = model.fit(Xtrain, Ytrain, validation_split=0.2, epochs=35, verbose=2)
 print(f"{time.time() - startTime:.2f} : Model fitted")
 
 # Evaluate the model on the test data
-loss, acc = model.evaluate(Xtest, Ytest, verbose=2)
 print("Checking against test set")
+loss, acc = model.evaluate(Xtest, Ytest, verbose=2)
 print('Test Accuracy: %f' % (acc))
 print('Test Loss: %f' % (loss))
 
