@@ -108,8 +108,7 @@ print(f"Training texts example is {Xtrain[0]}")
 # Target is an ordinal variable -
 # But, for initial version treat as a classification
 # Uses the Keras to_categorical model
-training_outcomes = array(training_outcomes)
-Ytrain = to_categorical(training_outcomes)
+Ytrain = array(training_outcomes)
 print(f"Training outcomes shape is {Ytrain.shape}")
 
 # Build the tokenized test texts
@@ -123,8 +122,7 @@ print(f"Test texts example is {Xtest[0]}")
 # Target is an ordinal variable -
 # But, for initial version treat as a classification
 # Uses the Keras to_categorical model
-test_outcomes = array(test_outcomes)
-Ytest = to_categorical(test_outcomes)
+Ytest = array(test_outcomes)
 print(f"Test outcomes shape is {Ytest.shape}")
 
 # create model
@@ -137,7 +135,7 @@ model.add(Dense(100, activation='relu'))
 model.add(Dense(3, activation='softmax'))
 
 # Compile model
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
 # fit model.  Include a 0.2 validation split
