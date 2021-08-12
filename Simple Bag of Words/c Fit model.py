@@ -6,14 +6,17 @@
 # And, the tokenized dictionary generated in 'Tokenization.py'
 
 import json
-from pathlib import Path
 import time
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+from numpy import array, argmax
+from sklearn.metrics import confusion_matrix
+from sklearn.utils.validation import check_memory
+from tensorflow.keras.layers import BatchNormalization, Dense
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
 from tensorflow.keras.utils import to_categorical
-from numpy import array
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, BatchNormalization
-import matplotlib.pyplot as plt
 
 startTime = time.time()
 
@@ -144,9 +147,15 @@ print(f"{time.time() - startTime:.2f} : Model fitted")
 
 # Evaluate the model on the test data
 print("Checking against test set")
-loss, acc = model.evaluate(Xtest, Ytest, verbose=2)
+loss, acc = model.evaluate(Xtest, Ytest, verbose=0)
 print('Test Accuracy: %f' % (acc))
 print('Test Loss: %f' % (loss))
+
+test_predictions = model.predict(Xtest)
+test_predictions=argmax(test_predictions, axis=1)
+cm = confusion_matrix (Ytest, test_predictions)
+print('Confusion matrix')
+print(cm)
 
 # Show metrics - model build progress
 plt.plot (history.history['accuracy'])
