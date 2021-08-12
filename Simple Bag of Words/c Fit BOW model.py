@@ -154,7 +154,7 @@ print('Test Loss: %f' % (loss))
 test_predictions = model.predict(Xtest)
 test_predictions=argmax(test_predictions, axis=1)
 cm = confusion_matrix (Ytest, test_predictions)
-print('Confusion matrix')
+print('Confusion matrix.  True labels on rows, predicted on columns')
 print(cm)
 
 # Show metrics - model build progress
