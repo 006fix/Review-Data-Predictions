@@ -49,19 +49,6 @@ for current_file in training_files_to_load:
     with open(file_to_read, mode='r') as file:        
         for line in file:
             review = json.loads(line.strip())
-            # Use both the review summary and the review detail
-            # Temporarily switch to using the rating (in bins of positive,neutral, negative) rather than year, since year not proving easy
-            # Training outcomes are zero based by subtracting 1998
-            # training_outcomes.append (int(review['review_year'])-1998)
-            # if (review['rating'] == None):
-            #     non_number_count += 1
-            #     continue
-            # elif (int(review['rating'])>6):
-            #     training_outcomes.append (2)
-            # elif (int(review['rating'])<4):
-            #     training_outcomes.append (0)
-            # else:
-            #     training_outcomes.append (1)
 
             # Load the training texts
             training_texts.append (review['review_detail'])
@@ -144,7 +131,7 @@ model.add(Dense(70, activation='relu', kernel_constraint=MaxNorm(3)))
 model.add(Dropout(0.1))
 model.add(Dense(30, activation='relu', kernel_constraint=MaxNorm(3)))
 model.add(Dropout(0.1))
-model.add(Dense(3, activation='softmax'))
+model.add(Dense(4, activation='softmax'))
 
 # Compile model
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
