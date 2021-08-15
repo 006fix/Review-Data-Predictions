@@ -103,7 +103,7 @@ model.add(Dense(4, activation='softmax'))
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
-# Shuffle the traingin data
+# Shuffle the training data
 rng = random.default_rng()
 rng.shuffle(training)
 
