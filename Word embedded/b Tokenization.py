@@ -17,14 +17,14 @@ import time
 from keras.preprocessing.text import Tokenizer
 
 # Define data source and target
-data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
-files_to_load = ["BOW_training_data.txt"]
+data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/Word_embedding")
+files_to_load = ["training_data.txt"]
 # Below is useful if reading the original files
 # files_to_load = ["BOW_training_data.json", "pre_processed_group_1.txt", "pre_processed_group_2.txt", "pre_processed_group_3.txt", "pre_processed_group_4.txt", "pre_processed_group_5.txt",  "pre_processed_group_6.txt", "pre_processed_group_7.txt"]
 # Use the below instead of the above for testing			 
 # files_to_load = ["pre_processed_group_0.txt"]
 
-data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/tokenized_dictionary.json")
+data_target_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/Word_embedding/tokenized_dictionary.json")
 
 # create the tokenizer
 # Most parameters are default, aside from the oov-token which is set to a specific entry so that rare words are visible
