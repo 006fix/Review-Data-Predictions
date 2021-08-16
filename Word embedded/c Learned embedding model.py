@@ -15,7 +15,7 @@ from numpy import array, argmax, atleast_2d, concatenate, random
 import numpy
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.validation import check_memory
-from tensorflow.keras.layers import Dense, Embedding, Conv1D, MaxPooling1D, Flatten
+from tensorflow.keras.layers import Dense, Embedding, Conv1D, MaxPooling1D, Flatten, Bidirectional, LSTM
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
 from tensorflow.keras.utils import to_categorical
@@ -106,9 +106,20 @@ print(f"Test outcomes shape is {Ytest.shape}")
 # create model
 print(f"{time.time() - startTime:.2f} : Creating model")
 model = Sequential()
-model.add(Embedding(max_words, 100, input_shape=(max_review_words,)))
-model.add(Conv1D(filters=32, kernel_size=8, activation='relu'))
+
+# Start with embedding model
+model.add(Embedding(max_words, 50, input_shape=(max_review_words,)))
+
+# Use CNN mid layer
+# model.add(Conv1D(filters=32, kernel_size=5, padding='same', activation='relu'))
+# model.add(Flatten())
+
+# Use bidirectional LTSM Full length of the review
+model.add(Bidirectional(LSTM(250, dropout=0.4, recurrent_dropout=0.4, activation='relu', return_sequences=True)))
+# model.add(Bidirectional(LSTM(128, dropout=0.4, recurrent_dropout=0.4, activation='relu', return_sequences=True)))
 model.add(Flatten())
+
+#Finish with dense layer
 model.add(Dense(30, activation='relu', kernel_constraint=MaxNorm(3)))
 model.add(Dropout(0.1))
 model.add(Dense(4, activation='softmax'))
