@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from numpy import array, argmax
+from numpy import array, argmax, atleast_2d, concatenate, random
 import numpy
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.validation import check_memory
@@ -31,61 +31,35 @@ with open(tokenized_dictionary) as f:
     tokenizer = tokenizer_from_json(f.read())
 print(f"Loaded tokenized dictionary based on {tokenizer.document_count} reviews, and including {len(tokenizer.word_index)} words")
 
-# Define training data source
-data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
-training_files_to_load = ["BOW_training_data.txt"]
+# Loads the data
+def load_data (data_source_folder, files_to_load, texts, outcomes):
+    
+    #Load the data
+    for current_file in files_to_load:
+        file_to_read = data_source_folder / current_file
+        with open(file_to_read, mode='r') as file:        
+            for line in file:
+                review = json.loads(line.strip())
+                
+                data_item = {}
+                texts.append (review['review_detail'])
+                outcomes.append (review['bin_id'])
 
-# Define the target
-model_save_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/words_only/saved_model.tf")
+data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
 
 # Load the training data
+training_files_to_load = ["BOW_training_data.txt"]
 training_texts = []
 training_outcomes = []
-process_count = 0
-# non_number_count = 0
-for current_file in training_files_to_load:
-    print(f"Starting load of training data by {current_file}...")
-    file_to_read = data_source_folder / current_file
-    with open(file_to_read, mode='r') as file:        
-        for line in file:
-            review = json.loads(line.strip())
-
-            # Load the training texts
-            training_texts.append (review['review_detail'])
-
-            # Load the outcomes
-            training_outcomes.append (review['bin_id'])
-
-            process_count += 1
-
-print(f"{process_count} items of training data loaded after {time.time() - startTime:.2f} seconds")
-# print(f"Found {non_number_count} ratings that have a non string rating")
-
-# Define test data source
-data_source_folder = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW")
-test_files_to_load = ["BOW_test_data.txt"]
+load_data (data_source_folder, training_files_to_load, training_texts, training_outcomes)
+print(f"Time {time.time() - startTime:.2f} : {len(training_outcomes)} items loaded")
 
 # Load the test data
+test_files_to_load = ["BOW_test_data.txt"]
 test_texts = []
 test_outcomes = []
-process_count = 0
-# non_number_count = 0
-for current_file in test_files_to_load:
-    print(f"Starting load of training data by {current_file}...")
-    file_to_read = data_source_folder / current_file
-    with open(file_to_read, mode='r') as file:        
-        for line in file:
-            review = json.loads(line.strip())
-           
-            # Load the test texts
-            test_texts.append (review['review_detail'])
-
-            # Load the outcomes
-            test_outcomes.append (review['bin_id'])
-
-            process_count += 1
-
-print(f"{process_count} items of test data loaded after {time.time() - startTime:.2f} seconds")
+load_data (data_source_folder, test_files_to_load, test_texts, test_outcomes)
+print(f"Time {time.time() - startTime:.2f} : {len(test_outcomes)} items loaded")
 
 # Set the desired dictionary size
 max_words = 1500
@@ -95,10 +69,17 @@ tokenizer.num_words = max_words
 max_review_words = 1500
 print(f"Tokenizing training texts, with length of {max_review_words} and dictionary of {max_words}")
 full_reviews = tokenizer.texts_to_sequences(training_texts)
-Xtrain = pad_sequences(full_reviews, max_review_words, padding='post')
+tokenised_training_texts = pad_sequences(full_reviews, max_review_words, padding='post')
 print(f"Tokenizing training texts complete after {time.time() - startTime:.2f} seconds")
-print(f"Training texts shape is {Xtrain.shape}")
-print(f"Training texts example is {Xtrain[0]}")
+print(f"Training texts shape is {tokenised_training_texts.shape}")
+print(f"Training texts example is {tokenised_training_texts[0]}")
+
+# Buld the target training matrix
+training_outcomes_np = array(training_outcomes)
+print(f"Training outcomes shape is {training_outcomes_np.shape}")
+
+training = concatenate((atleast_2d(training_outcomes_np).T, tokenised_training_texts), axis=1)
+print(f"Training data shape is {training.shape}")
 
 # Buld the target training matrix
 # Target is an ordinal variable -
@@ -137,8 +118,12 @@ model.add(Dense(4, activation='softmax'))
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(f"{time.time() - startTime:.2f} : Model compiled")
 
+# Shuffle the training data
+rng = random.default_rng()
+rng.shuffle(training)
+
 # fit model.  Include a 0.2 validation split
-history = model.fit(Xtrain, Ytrain, validation_split=0.2, epochs=50, verbose=2)
+history = model.fit(training[:,1:], training[:,0:1], validation_split=0.2, epochs=35, verbose=2)
 print(f"{time.time() - startTime:.2f} : Model fitted")
 
 # Evaluate the model on the test data
@@ -163,5 +148,6 @@ plt.legend(['train','test'], loc='upper left')
 plt.show()
 
 # Save the model
+model_save_file = Path("C:/Users/gregp/Documents/kaggle/imdb-review-dataset/simple_BOW/saved_model.tf")
 model.save(model_save_file)
 print(f"{time.time() - startTime:.2f} : Model Saved")
