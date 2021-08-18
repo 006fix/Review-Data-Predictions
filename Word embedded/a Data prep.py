@@ -11,8 +11,28 @@
 import json
 from pathlib import Path
 import time
+import re
 
-# Functio to do the prep.  Seperated as used for both train and test data
+# Define the regex's to use for punctuation replacements
+punc_set = {}
+punc_stem = "xxpunc"
+punc_set[punc_stem+'stop'] = re.compile(r"\.")
+punc_set[punc_stem+'comma'] = re.compile(r",")
+punc_set[punc_stem+'exclamation'] = re.compile(r"!")
+punc_set[punc_stem+'colon'] = re.compile(r":")
+punc_set[punc_stem+'semicolon'] = re.compile(r";")
+punc_set[punc_stem+'dash'] = re.compile(r"-")
+punc_set[punc_stem+'hash'] = re.compile(r"#")
+punc_set[punc_stem+'question'] = re.compile(r"\?")
+punc_set[punc_stem+'openbracket'] = re.compile(r"\(")
+punc_set[punc_stem+'closebracket'] = re.compile(r"\)")
+punc_set[punc_stem+'openbrace'] = re.compile(r"\{")
+punc_set[punc_stem+'closebrace'] = re.compile(r"\}")
+punc_set[punc_stem+'equal'] = re.compile(r"=")
+punc_set[punc_stem+'greater'] = re.compile(r">")
+punc_set[punc_stem+'less'] = re.compile(r"<")
+
+# Function to do the prep.  Seperated as used for both train and test data
 def prep_data (files_to_load, data_target_file, target_volume):
 
     print(f"\n\nCreating {data_target_file}\n")
@@ -57,6 +77,12 @@ def prep_data (files_to_load, data_target_file, target_volume):
                 for bin_id, bin in bins.items():
                     if ((review['review_year'] in bin) and (year_counter[review['review_year']] > 0)):
                         review['bin_id'] = bin_id
+
+                        # Check for punctuation to replace
+                        review['review_detail_original'] = review['review_detail']
+                        for substitution, regex in punc_set.items():
+                            review['review_detail'] = regex.sub(' '+substitution+' ', review['review_detail'])
+
                         corpus_sub_set.append(review)
                         year_counter[review['review_year']] = year_counter[review['review_year']] -1
                         if (year_counter[review['review_year']] == 0):
