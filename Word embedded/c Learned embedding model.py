@@ -66,7 +66,7 @@ max_words = 1500
 tokenizer.num_words = max_words
 
 # Build the tokenized training texts
-max_review_words = 250
+max_review_words = 300
 print(f"Tokenizing training texts, with length of {max_review_words} and dictionary of {max_words}")
 full_reviews = tokenizer.texts_to_sequences(training_texts)
 tokenised_training_texts = pad_sequences(full_reviews, max_review_words, padding='post')
@@ -111,13 +111,13 @@ model = Sequential()
 model.add(Embedding(max_words, 50, input_shape=(max_review_words,)))
 
 # Use CNN mid layer
-# model.add(Conv1D(filters=32, kernel_size=5, padding='same', activation='relu'))
-# model.add(Flatten())
+model.add(Conv1D(filters=32, kernel_size=5, padding='same', activation='relu'))
+model.add(Flatten())
 
 # Use bidirectional LTSM 20 units long (roughly enough for a sentence each way)
-model.add(Bidirectional(LSTM(20, dropout=0.2, recurrent_dropout=0.2, activation='relu', return_sequences=True)))
+# model.add(Bidirectional(LSTM(20, dropout=0.2, recurrent_dropout=0.2, activation='relu', return_sequences=True)))
 # model.add(Bidirectional(LSTM(128, dropout=0.4, recurrent_dropout=0.4, activation='relu', return_sequences=True)))
-model.add(Flatten())
+# model.add(Flatten())
 
 #Finish with dense layer
 model.add(Dense(30, activation='relu', kernel_constraint=MaxNorm(3)))
