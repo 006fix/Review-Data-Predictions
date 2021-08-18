@@ -8,8 +8,7 @@
 # Stores the result as a JSON (see https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/text/Tokenizer)
 #
 # NOTES
-# Need to consider performance on words not in corpus vs training set.  Good use for the first test dat vs. second.
-# So for now, build dictionary by tokenizing files 0-7, leaving out 8 and 9
+# 18/08/21 - adding abilty to tokenize punctuation
 
 import json
 from pathlib import Path
